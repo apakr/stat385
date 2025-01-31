@@ -35,7 +35,7 @@ for (bever in 1:4)
 legendtext<-c("Alcohol","Grape juice","Red wine","Water")
 legend(8,4.5,legendtext,col=colvec,pch=pchvec,lty=ltyvec)
 
-## Question 4: Construct linear model for gene expression (should have an LM in it) (4 - model, 5 - coefficients, 6 - model, 7 - prediction)
+## Question 4: Construct linear model for gene expression
 lm1 <- lm(averageRFC2 ~ Beverages)
 
 
@@ -44,13 +44,16 @@ summary(lm1)
 # Least squares estimate of different effect of alcohol and water on average gene expression of RFC2 is 0.02851, 
 # but since the p-value is not significant, this difference that we observe is not significantly different from 0.
 
-## Question 6: (should have an LM in it, call it lm3 so that it works in Q7)
+## Question 6: Construct linear model for gene expression using both beverages and hours
+hours3 <- hours^3
+lm3 <- lm(averageRFC2 ~ Beverages + hours3)
 
 ## Question 7: Define new data set for prediction
 
-newdata<-as.data.frame(list(BeverFac="1",hours=6, hours2=36, hours3=216))
-newprediction<-predict(lm3,newdata,interval="predict")
-
+newdata<-as.data.frame(list(Beverages="1",hours=6, hours2=36, hours3=216))
+newprediction<-predict(lm3,newdata,interval="predict", level = .95)
+#    fit      lwr      upr
+#1 4.294241 4.092725 4.495756
 
 
 

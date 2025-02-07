@@ -45,15 +45,17 @@ summary(lm1)
 # but since the p-value is not significant, this difference that we observe is not significantly different from 0.
 
 ## Question 6: Construct linear model for gene expression using both beverages and hours
+
+hours2 <- hours^2
 hours3 <- hours^3
-lm3 <- lm(averageRFC2 ~ Beverages + hours3)
+lm3 <- lm(averageRFC2 ~ Beverages + hours + hours2 + hours3)
 
 ## Question 7: Define new data set for prediction
 
 newdata<-as.data.frame(list(Beverages="1",hours=6, hours2=36, hours3=216))
 newprediction<-predict(lm3,newdata,interval="predict", level = .95)
-#    fit      lwr      upr
-#1 4.294241 4.092725 4.495756
+#     fit      lwr      upr
+# 1 4.300832 4.067615 4.534048
 
 
 

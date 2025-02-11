@@ -27,26 +27,22 @@ errors
 sqrt(sum(errors^2))
 # 1.9244
 
-# need code for evaluating the errors
-# to do that we need to do the prediction, minus prediction(lm1, testset) - actual values
-# i need to write code like the stuff in q5 for here the stuff in q4, for all the variables, but we want the mean squared error for this
-
-# you got an errors vector, which is actual minus predicted
-# sqrt(sum(errors^2)) - gives you the errors
-
-# you can be fancy and just use the norm function like in part 5. if you do type = 2 it squares them, adds them all up together, then square roots them
-
 
 ## Q5: Model selection using both backward and forward algorithms, and choose the model using AIC and BIC
 
 library(MASS)
-AICmod<-stepAIC(lm1,direction="both",trace=1)
+AICmod<-stepAIC(lm1,direction="both",trace=FALSE)
 summary(AICmod)
+
 subsetindex<-colnames(testset0)%in%names(AICmod$coefficients)
 newdata<-data.frame(as.matrix(testset0[,subsetindex]))
 AICpredbias<-predict(AICmod,newdata=newdata)-testset0[,101]
 AICmodsse<-norm(AICpredbias,type="2")
-
+AICmodsse
+# 1.915227
+  
+# The error for the linear regression model is 1.9244. The error for the AIC is 1.915227. The second method gives the lowest prediction error. 
+# This is because it excludes less significant variables and only includes the most informative ones, thus reducing the error and providing a better fit.
 
 getwd()
 

@@ -9,6 +9,7 @@ setwd("lab5")
 polls2008<-read.csv(file="2008-polls.csv",header=TRUE)
 polls2012<-read.csv(file="2012-polls.csv",header=TRUE)
 results2008<-read.csv(file="2008-results.csv",header=TRUE)
+results2012 <- read.csv(file= "2012-results.csv", header=TRUE)
 
 ## Select pollsters that conducted at least five polls 
 
@@ -59,6 +60,13 @@ pollersFAC<-as.factor(subdataset2008[,5])
 logitreg1<-glm(resp~margins+lagtime+pollersFAC,family="binomial")
 summary(logitreg1)
 
+
+polls2008_dataNew <- data.frame(margins = 5, lagtime = 14, pollersFAC = "Rasmussen")
+
+pred_prob <- predict(logitreg1, newdata = polls2008_dataNew, type = "response")
+pred_prob
+# 0.7503705 
+
 ## Question 5: reformating the 2012 poll data for prediction purpose
 
 ## Create data for prediction
@@ -73,11 +81,9 @@ for (i in 1:dim(polls2012sub)[1])
 }
 dataset2012<-cbind(pollwiners2012,as.character(polls2012sub[,1]),margins2012,lagtime2012,as.character(polls2012sub[,5]))
 
-## Focusing on the states in the state list of 2008
 
 subdataset2012<-dataset2012[dataset2012[,2]%in%stateslist,]
 
-## Do the prediction for the state "MI" using the logistic regression model in Q4
 
 margins2012<-as.double(subdataset2012[,3])
 lagtime2012<-as.double(subdataset2012[,4])
@@ -98,3 +104,114 @@ MIprobDemwin1<-MIPredictresults1[,1]*MIPredictresults1[,2]+(1-MIPredictresults1[
 MImeanProbDemwin1<-mean(MIprobDemwin1)
 MIprobGopwin1<-(1-MIPredictresults1[,1])*MIPredictresults1[,2]+MIPredictresults1[,1]*(1-MIPredictresults1[,2])
 MImeanProbGopwin1<-mean(MIprobGopwin1)
+
+state_probs <- list()
+
+for (state in c("CO", "VA", "OH", "GA")) {
+  state_data <- subdataset2012[subdataset2012[, 2] == state, ]
+  NoPolls <- sum(state_data[, 2] == state)
+  state_predict_results <- matrix(0, nrow = NoPolls, ncol = 2)
+  counts <- 0
+  for (i in which(state_data[, 2] == state)) {
+    counts <- counts + 1
+    state_datapoints <- data.frame(
+      margins = margins2012[i],
+      lagtime = lagtime2012[i],
+      pollersFAC = pollersFAC2012[i]
+    )
+    state_predict_results[counts, 2] <- predict(logitreg1, state_datapoints, type = "response")
+  }
+  state_probs[[state]] <- mean(state_predict_results[, 2])
+}
+
+state_probs
+
+# CO
+# 0.6270428
+# 
+# VA
+# [1] 0.5888341
+# 
+# OH
+# 0.590914
+# 
+# GA
+# 0.618575
+
+
+## Question 6: Predict winner of each state
+
+WIND <- ifelse(results2012$Dem > results2012$Rep, 1, 0)
+
+predicted_winners <- c()
+actual_winners <- c()
+accuracy_scores <- c()
+
+# Colorado 
+state <- "CO"
+avg_prob_dem_win_CO <- state_probs[[state]] # 0.6270428
+avg_prob_gop_win_CO <- 1 - avg_prob_dem_win_CO # 0.3729572
+
+winnerPredicted_CO <- ifelse(avg_prob_dem_win_CO > avg_prob_gop_win_CO, "Democrat", "Republican")
+actualWinner_CO <- ifelse(WIND[results2012$State == state] == 1, "Democrat", "Republican")
+accuracy_CO <- ifelse(winnerPredicted_CO == actualWinner_CO, 1, 0)
+
+predicted_winners <- c(predicted_winners, winnerPredicted_CO)
+actual_winners <- c(actual_winners, actualWinner_CO)
+accuracy_scores <- c(accuracy_scores, accuracy_CO)
+
+# Virginia 
+state <- "VA"
+avg_prob_dem_win_VA <- state_probs[[state]] # 0.5888341
+avg_prob_gop_win_VA <- 1 - avg_prob_dem_win_VA # 0.4111659
+
+winnerPredicted_VA <- ifelse(avg_prob_dem_win_VA > avg_prob_gop_win_VA, "Democrat", "Republican")
+actualWinner_VA <- ifelse(WIND[results2012$State == state] == 1, "Democrat", "Republican")
+accuracy_VA <- ifelse(winnerPredicted_VA == actualWinner_VA, 1, 0)
+
+predicted_winners <- c(predicted_winners, winnerPredicted_VA)
+actual_winners <- c(actual_winners, actualWinner_VA)
+accuracy_scores <- c(accuracy_scores, accuracy_VA)
+
+# Ohio
+state <- "OH"
+avg_prob_dem_win_OH <- state_probs[[state]] # 0.590914
+avg_prob_gop_win_OH <- 1 - avg_prob_dem_win_OH # 0.409086
+
+winnerPredicted_OH <- ifelse(avg_prob_dem_win_OH > avg_prob_gop_win_OH, "Democrat", "Republican")
+actualWinner_OH <- ifelse(WIND[results2012$State == state] == 1, "Democrat", "Republican")
+accuracy_OH <- ifelse(winnerPredicted_OH == actualWinner_OH, 1, 0)
+
+predicted_winners <- c(predicted_winners, winnerPredicted_OH)
+actual_winners <- c(actual_winners, actualWinner_OH)
+accuracy_scores <- c(accuracy_scores, accuracy_OH)
+
+# Georgia
+state <- "GA"
+avg_prob_dem_win_GA <- state_probs[[state]] # 0.618575
+avg_prob_gop_win_GA <- 1 - avg_prob_dem_win_GA # 0.381425
+
+winnerPredicted_GA <- ifelse(avg_prob_dem_win_GA > avg_prob_gop_win_GA, "Democrat", "Republican")
+actualWinner_GA <- ifelse(WIND[results2012$State == state] == 1, "Democrat", "Republican")
+accuracy_GA <- ifelse(winnerPredicted_GA == actualWinner_GA, 1, 0)
+
+predicted_winners <- c(predicted_winners, winnerPredicted_GA)
+actual_winners <- c(actual_winners, actualWinner_GA)
+accuracy_scores <- c(accuracy_scores, accuracy_GA)
+
+# Output results
+results_df <- data.frame(
+  State = c("CO", "VA", "OH", "GA"),
+  Predicted_Winner = predicted_winners,
+  Actual_Winner = actual_winners,
+  Accuracy = accuracy_scores
+)
+
+print(results_df)
+
+#   State Predicted_Winner Actual_Winner Accuracy
+# 1    CO         Democrat      Democrat        1
+# 2    VA         Democrat      Democrat        1
+# 3    OH         Democrat      Democrat        1
+# 4    GA         Democrat    Republican        0
+

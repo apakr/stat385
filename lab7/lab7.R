@@ -103,15 +103,15 @@ for (j in 1:dim(allcomb)[2])
 {
   for (k in 1:length(kvec))
   {
-    test<-orderandom[(i-1)*nsample+c(1:nsample)]
-    train.set.cv<-microdata8[-test,]
-    test.set.cv<-microdata8[test,]
-    microdata8.pred <- class::knn(train=train.set.cv, test=test.set.cv, cl=BLClabels[-test], k=kvec[k])
-    truth<-BLClabels[test]
-    AccuTab[k,i] <- sum(truth==microdata8.pred)
     
-    ## Please provide your code here to evaluate the prediction accuracy
-    ## for the j-th submodel and k-th k value
+    for (i in 1:intfold) { 
+      test <- orderandom[(i-1) * nsample + c(1:nsample)]
+      train.set.cv <- microdata8[-test, allcomb[, j]] 
+      test.set.cv <- microdata8[test, allcomb[, j]]
+      microdata8.pred <- class::knn(train=train.set.cv, test=test.set.cv, cl=BLClabels[-test], k=kvec[k])
+      truth <- BLClabels[test]
+      AccuArray[j, i, k] <- sum(truth == microdata8.pred)  
+    }
     
   }
 }
@@ -119,5 +119,15 @@ for (j in 1:dim(allcomb)[2])
 AveAccuracyTable <- apply(AccuArray,c(1,3),sum)/nrow(microdata8)
 MaxAccuracyModels <- apply(AveAccuracyTable,1,max)
 ModelAndAccuracy <- cbind(t(allcomb), MaxAccuracyModels)
+
+BestModels <- which(ModelAndAccuracy[,"MaxAccuracyModels"] == max(ModelAndAccuracy[,"MaxAccuracyModels"]))
+BestModels
+# [1] 38
+
+ModelAndAccuracy[38,]
+#                                               MaxAccuracyModels 
+# 3.0000000         4.0000000         6.0000000         0.9574468 
+
+
 
 

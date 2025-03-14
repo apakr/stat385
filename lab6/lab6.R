@@ -134,3 +134,4 @@ table(truth, knn.pred3)
 
 ## prediction using KNN (k=8)
 table(truth, knn.pred8)
+

@@ -86,6 +86,7 @@ library("lars")
 xmat<-as.matrix(trainset0[,-c(1,101)])
 y<-trainset0[,101]
 lmLAR<-lars(xmat,y,type="lar")
+plot(lmLAR)
 
 ## Q9: Find the coefficients having sign changes
 
@@ -97,6 +98,8 @@ sigchangecols<-which(signchanges==TRUE)
 coefsigns[,sigchangecols]
 nlam<-dim(coef(lmLAR))[1]
 smalltuning<-sum(abs(coef(lmLAR)[9,]))/sum(abs(coef(lmLAR)[nlam,]))
+# > smalltuning
+# 0.06321938
 
 
 ## Q10: Comparing the LAR estimate with the LASSO estimate
@@ -106,11 +109,15 @@ par(mfrow=c(1,2))
 plot(lmLAR,xlim=c(0,0.08))
 plot(lmLASSO,xlim=c(0,0.08))
 coef(lmLASSO)[1:9,]==coef(lmLAR)[1:9,]
+# Based on the graphs and looking around the tuning parameter of ~.063, it looks like at feature variable 5 the
+# two methods begin to deviate in their solution paths
 
 lmLASSO<-lars(xmat,y)
 par(mfrow=c(1,2))
 plot(lmLAR)
 plot(lmLASSO)
+# Looking at the plots we can see that LASSO takes more steps than LAR, as the right sides of the graphs 
+# contain different numbers, with LASSO going up to 106 and LAR going up to only 98. 
 
 ## Q11: Choose the tuning parameter for LASSO using cross-validation
 ##install.packages("glmnet")
@@ -119,11 +126,26 @@ library("glmnet")
 cvfit<-cv.glmnet(xmat,y,alpha=1)
 plot(cvfit)
 lambest<-cvfit$lambda.min
+# > lambest
+# [1] 0.0002588822
+
+
+## Q12: Target Variable Prediction
+
 lassobest<-glmnet(xmat,y,alpha=1,lambda=lambest)
 lassobest$beta
+x_test <- as.matrix(testset0[,-c(1,101)]) 
+y_test <- testset0[,101]
+lasso_pred <- predict(lassobest, s = lambest, newx = x_test)
+lasso_pred
 
+sse_lasso <- sum((lasso_pred - y_test)^2)
+sse_lasso
+# 3.573916
 
+sse.testerr
+# 2.534359, lower
 
-
-
-
+# Since the sse for ridge is lower than the sse for lasso,
+# that means that ridge performed better in terms of prediction
+# accuracy.

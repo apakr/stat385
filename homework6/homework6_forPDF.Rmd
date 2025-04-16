@@ -1,0 +1,126 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+Al Pakrosnis\
+Homework 6\
+Prof. Dale Embers\
+STAT385 Sp25\
+
+```{r}
+setwd("~/Desktop/stat385/")
+
+library(rpart)
+library(rpart.plot)
+library(e1071)
+library(ISLR2)
+
+# Q1 (a)
+df <- read.table("homework6/Hemophilia-dat.txt", header = FALSE)
+summary(df)
+head(df)
+
+colnames(df) <- c("group","AHF activity","AHF-like antigen")
+
+set.seed(2024325)
+
+train <- sample(1:dim(df)[1],60)
+
+# (b)
+tree <- rpart(group ~ ., data=df[train,],method="class", control=rpart.control(minsplit = 3, minbucket = 2, cp=0))
+
+# (c)
+prp(tree,type=2,extra=1) 
+```
+
+(d)
+If a person had AHF activity -.14 and AHF-like antigen activity of .064, based on the constructed tree, their predicted group would be group one as using these two criteria you move once to the left from the seed then again to the left and thus you're in group one.
+
+```{r}
+# (e)
+predictions <- predict(tree, df[-train,], type="class")
+table(df[-train,"group"],predictions)
+
+
+# (f)
+nbmodel <- naiveBayes(group ~ ., data = df, subset=train) 
+nbpred <- predict(nbmodel, df[-train,]) 
+table(df[-train,"group"],nbpred)
+```
+
+Based on the two provided tables the naive bayes is marginally better at predicting than the tree.
+
+```{r}
+# (g)
+px1<-seq(min(df[,2]),max(df[,2]),length=100)
+px2<-seq(min(df[,3]),max(df[,3]),length=100)
+xgrid<-expand.grid('AHF activity'=px1,'AHF-like antigen'=px2)
+treepredict<- predict(tree,xgrid,type="class")
+plot(xgrid, col = as.numeric(treepredict), pch = 20, cex = .2, main="Tree Method") 
+
+# (h)
+nbpred <- predict(nbmodel, xgrid) 
+plot(xgrid, col = as.numeric(nbpred), pch = 20, cex = .2, main="NB method") 
+```
+
+
+The naive bayes method provides a region that is bulbous in shape, but both methods generally separate a similar area in the plot. The classification tree plot is cut up into squares, which makes sense as the tree takes each leaf's area in divides it up, thus it shows up as squares. 
+
+
+```{r}
+# Q2 (a)
+
+set.seed(2024325)
+
+ndf <- Default
+
+train2 <- sample(1:nrow(ndf), .7*nrow(ndf))
+
+# (b)
+
+tree2 <- rpart(default~., data=ndf[train2,])
+prp(tree2,type=2,extra=1) 
+
+# (c)
+printcp(tree2)
+plotcp(tree2) 
+
+# (d)
+tree2_pruned <-prune(tree2, cp=0.0142) 
+prp(tree2,type=2,extra=1)
+prp(tree2_pruned,type=2,extra=1) 
+```
+
+(e)
+Dude ion even kno tbh... like you're pruning it so you're expecting it to be smaller which it is, that's how one could've expected the pruned tree based on the results from part c and the pruning cp.
+
+```{r}
+# (f)
+pred <-predict(tree2, ndf[-train2,], type="class")
+pred_pruned <-predict(tree2_pruned, ndf[-train2,], type="class")
+
+table(ndf[-train2,"default"], pred)
+
+err1 <- (15+69)/(2888+15+69+28)
+err1
+
+
+table(ndf[-train2,"default"], pred_pruned)
+
+
+err2 <- (7+75)/(2896+7+75+22)
+err2
+```
+
+
+
+
+
+
+
+
+
+
+
+

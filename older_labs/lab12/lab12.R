@@ -86,10 +86,10 @@ par(mfrow=c(1,1))
 y=newSpamdata$SpamOrNot
 plot(newSpamdatasub[,1:2], col=y+1, pch=y+1, xlab="georgehp", ylab="youyour")
 
-## Q3: Fit a linear SVM to data and find the seperation line
+# Question 3
 
+## Fit a linear SVM to data and find the separation line
 newSpamdatasub0<-data.frame(group=as.factor(newSpamdata$SpamOrNot),X1=newSpamdatasub[,1], X2=newSpamdatasub[,2])
-
 library("e1071")
 svmmodel=svm(group~., data=newSpamdatasub0, kernel="linear",scale=F,cost=100)
 print(svmmodel)
@@ -102,15 +102,8 @@ abline((beta0 - 1)/beta[2], -beta[1]/beta[2], lty = 3,col=3)
 abline((beta0 + 1)/beta[2], -beta[1]/beta[2], lty = 3,col=3)
 legend("topright", legend=c("Non-spam","Spam"),col=c(1,2), pch=c(1,2))
 
-
-## Evaluating the performance using training and testing data sets
-
-train=sample(1:dim(newSpamdatasub0)[1],4000)
-svmmodeltrain=svm(group~., data=newSpamdatasub0, subset=train, kernel="linear",scale=F,cost=100)
-predvals=predict(svmmodeltrain, newdata=newSpamdatasub0[-train,], decision.values=T)
-truth=newSpamdatasub0[-train,1]
-table(truth,predvals)
-
+## Evaluate performance 20 times
+set.seed(385)
 df <- NULL
 for (i in 1:20) {
   train = sample(1:dim(newSpamdatasub0)[1], 4000)
@@ -120,16 +113,27 @@ for (i in 1:20) {
   res = c(table(truth, predvals)[1,2], table(truth, predvals)[2,1])
   df = rbind(df, res)
 }
-
-## Show average results
-cat("Average false positives (linear):", mean(df[,1]), "\n")
-# Average false positives (linear): 64.9
-cat("Average false negatives (linear):", mean(df[,2]), "\n")
-# Average false negatives (linear): 73.5
+cat("Average false positives (linear):", mean(df[,1]))
+# Average false positives (linear): 66.95
+cat("Average false negatives (linear):", mean(df[,2]))
+# Average false negatives (linear): 70.95
 
 # Question 4
 
-## Using a nonlinear SVM with polynomial and radial basis function (RBF) kernels
+## Tune hyperparameters for polynomial and RBF kernels using cross-validation
+set.seed(385)
+
+# Polynomial tuning
+poly_tune <- tune(svm, group ~ ., data = newSpamdatasub0, kernel = "polynomial",
+                  ranges = list(cost = c(0.1, 1, 10), degree = c(2, 3, 4)), scale = FALSE)
+summary(poly_tune)  # Best: cost = 10, degree = 2
+
+# RBF tuning
+rbf_tune <- tune(svm, group ~ ., data = newSpamdatasub0, kernel = "radial",
+                 ranges = list(cost = c(0.1, 1, 10), gamma = c(0.01, 0.1, 1)), scale = FALSE)
+summary(rbf_tune)  # Best: cost = 10, gamma = 1
+
+## Evaluate tuned models 20 times using best parameters from tuning
 fp_poly <- fn_poly <- fp_rbf <- fn_rbf <- numeric(20)
 
 set.seed(385)
@@ -138,29 +142,25 @@ for (i in 1:20) {
   test_indices = setdiff(1:nrow(newSpamdatasub0), train)
   truth = newSpamdatasub0[test_indices, 1]
 
-  # Polynomial kernel
-  poly_model <- svm(group~., data=newSpamdatasub0, subset=train, kernel="polynomial", degree=3, cost=1, scale=FALSE)
+  # Polynomial using tuned parameters: cost=10, degree=2
+  poly_model <- svm(group~., data=newSpamdatasub0, subset=train, kernel="polynomial",
+                    cost=10, degree=2, scale=FALSE)
   poly_preds <- predict(poly_model, newdata=newSpamdatasub0[test_indices,])
   poly_conf <- table(truth, poly_preds)
   fp_poly[i] <- ifelse("0" %in% rownames(poly_conf) & "1" %in% colnames(poly_conf), poly_conf["0","1"], 0)
   fn_poly[i] <- ifelse("1" %in% rownames(poly_conf) & "0" %in% colnames(poly_conf), poly_conf["1","0"], 0)
 
-  # RBF kernel
-  rbf_model <- svm(group~., data=newSpamdatasub0, subset=train, kernel="radial", cost=1, gamma=0.1, scale=FALSE)
+  # RBF using tuned parameters: cost=10, gamma=1
+  rbf_model <- svm(group~., data=newSpamdatasub0, subset=train, kernel="radial",
+                   cost=10, gamma=1, scale=FALSE)
   rbf_preds <- predict(rbf_model, newdata=newSpamdatasub0[test_indices,])
   rbf_conf <- table(truth, rbf_preds)
   fp_rbf[i] <- ifelse("0" %in% rownames(rbf_conf) & "1" %in% colnames(rbf_conf), rbf_conf["0","1"], 0)
   fn_rbf[i] <- ifelse("1" %in% rownames(rbf_conf) & "0" %in% colnames(rbf_conf), rbf_conf["1","0"], 0)
 }
 
-cat("Polynomial Kernel - Avg FP:", mean(fp_poly), ", Avg FN:", mean(fn_poly), "\n")
-# Polynomial Kernel - Avg FP: 126.75 , Avg FN: 78.75
-cat("RBF Kernel - Avg FP:", mean(fp_rbf), ", Avg FN:", mean(fn_rbf), "\n")
-# RBF Kernel - Avg FP: 95.05 , Avg FN: 42.3
-
-
-
-
-
-
+cat("Tuned Polynomial Kernel - Avg FP:", mean(fp_poly), ", Avg FN:", mean(fn_poly))
+# Tuned Polynomial Kernel - Avg FP: 40.4 , Avg FN: 115.4
+cat("Tuned RBF Kernel - Avg FP:", mean(fp_rbf), ", Avg FN:", mean(fn_rbf))
+# Tuned RBF Kernel - Avg FP: 85 , Avg FN: 47.5
 

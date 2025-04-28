@@ -82,10 +82,19 @@ plot(microdata2, col=kmeans.cluster2$cluster, main="K-means clustering")
 points(kmeans.cluster2$centers,cex=2,pch=20, col=c(1:2))
 plot(microdata2, col=BLClabels, main="true labels")
 
+kmeans_vs_true <- table(kmeans.cluster2$cluster, BLClabels)
+kmeans_vs_true
+#   BLClabels
+#    1  2
+# 1  1 18
+# 2 26  2
+
+# The k-means clustering with k=2 does not perform very well. Cluster 1 contains mostly BLC patients,
+# while Cluster 2 contains mostly non-BLC patients, but there is substantial mixing between the classes.
 
 ############################################################################
 #
-# Hierarchical clustering using manhattan distance and centroid-linkage merging
+# Q4. Hierarchical clustering using manhattan distance and centroid-linkage merging
 #
 ############################################################################
 
@@ -102,7 +111,16 @@ cuttree2<-cutree(hclustCen,k=2)
 plot(hclustCen)
 rect.hclust(hclustCen,k=2,border="red")
 
+hierarchical_vs_true <- table(cuttree2, BLClabels)
+hierarchical_vs_true
+#         BLClabels
+# cuttree2  1  2
+#         1 26  2
+#         2  1 18
 
+# The hierarchical clustering using Manhattan distance and centroid linkage performs well. Cluster 1
+# groups mostly non-BLC patients, and Cluster 2 groups mostly BLC patients, with very little misclassification
+# compared to k-means. This method works better for our data.
 
 ############################################################################
 #
@@ -115,6 +133,7 @@ plot(microdata2, col=kmeans.cluster2$cluster, main="K-means clustering (K=2)")
 points(kmeans.cluster2$centers,cex=2,pch=20, col=c(1:2))
 plot(microdata2, col=cuttree2, main="Hierarchical clustering (K=2)")
 
+# good looks :D
 
 
 

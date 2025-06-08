@@ -1,0 +1,67 @@
+Al Pakrosnis
+Homework 7
+Prof. Dale Embers
+4/15/25
+
+Load libraries
+
+```{r}
+library(ISLR2)
+library(rpart)
+library(rpart.plot)
+library(ipred)
+library(adabag)
+library(randomForest)
+```
+
+Question 1
+```{r}
+set.seed(20240407)
+data <- OJ
+
+train_indices <- sample(1:nrow(data), nrow(data)*.75)
+train<-data[train_indices,]
+test<-data[-train_indices,]
+rownames(train) <- NULL
+rownames(test) <- NULL
+```
+
+Question 2
+```{r}
+tree.full <- rpart(Purchase ~ ., data=train, control=rpart.control(minsplit = 2, minbucket = 1, cp=0))
+prp(tree.full,type=2,extra=1)
+
+tree.predictions<- predict(tree.full, test, type="class")
+treetable<-table(test$Purchase, tree.predictions)
+tree.errate<-(sum(treetable)-sum(diag(treetable)))/sum(treetable)
+tree.errate
+```
+
+Question 3
+```{r}
+bestcp <- tree.full$cptable[which.min(tree.full$cptable[,"xerror"]),"CP"]
+tree.pruned <- prune(tree.full, cp = bestcp)
+prune.predictions <- predict(tree.pruned, test, type="class")
+
+ptreetable<-table(test$Purchase, prune.predictions)
+ptree.errate<-(sum(ptreetable)-sum(diag(ptreetable)))/sum(ptreetable)
+prp(tree.pruned,type=2,extra=1)
+```
+
+Question 4
+```{r}
+
+```
+Question 5
+
+Question 6
+
+Question 7
+
+Question 8
+
+Question 9
+
+Question 10
+
+Question 11

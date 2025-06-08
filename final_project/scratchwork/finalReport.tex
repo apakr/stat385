@@ -1,0 +1,81 @@
+\documentclass[12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{enumitem}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{rotating}
+\usepackage{listings}
+\usepackage{xcolor} 
+\usepackage{tabularx}
+\usepackage{booktabs}
+\setlength{\parindent}{0pt}
+\lstset{
+  backgroundcolor=\color{lightgray},
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue},
+  commentstyle=\color{green!60!black},
+  stringstyle=\color{red},
+  breaklines=true,
+  showstringspaces=false
+}
+
+\geometry{a4paper, margin=1in}
+
+\title{STAT 385 Final Project}
+\author{Larry Barrett, Daniel Mroz, Al Pakrosnis}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Question Synthesis}
+Coming into this project our team wanted to separate analysis into three primary sections; the first two would be 
+
+\section{Question 1}
+\textbf{Q1. How does}
+\subsection{Q1 EDA}
+
+\newpage 
+
+\section{Question 2}
+\textbf{Q1. How does}
+\subsection{Q2 EDA}
+
+\newpage
+
+\section{Question 3}
+\subsection{Intro}
+\textbf{Which students are most likely to need additional academic support, and what factors best predict this need?}
+
+\begin{itemize}
+    \item \textit{Operational Definition}: A student "needs support" if they have at least one past class failure or have received extra school-provided educational support.
+    \item \textit{Goal}: Develop predictive models to classify students who need support, and identify key predictors
+\end{itemize}
+
+\textbf{Statistical and Machine Learning Solutions:}
+
+\begin{itemize}
+    \item Logistic Regression: For interpretable, baseline classification.
+    \item Naive Bayes: For a simple probabilistic approach.
+    \item Random Forest: For robust, non-linear modeling and feature importance.
+\end{itemize}
+
+
+\subsection{Q3 EDA}
+
+\subsection{Data Preparation Steps:}
+\begin{itemize}
+    \item Using the vertically merged dataset, created a binary outcome variable \texttt{needs_support}, 1 if any failures or school support, 0 otherwise.
+    \item Converted categorical variables to factors
+    \item Removed grade columns and identifies for modeling
+\end{itemize}
+
+
+\section{Concluding Remarks}
+
+
+\end{document}
